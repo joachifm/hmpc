@@ -14,6 +14,6 @@ executable hmpc
   build-depends:
       base
     , bytestring
-    , nanompd
+    , mpd
     , text
     , unordered-containers
