@@ -16,4 +16,3 @@ executable hmpc
     , bytestring
     , mpd
     , text
-    , unordered-containers

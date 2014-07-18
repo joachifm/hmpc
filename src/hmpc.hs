@@ -11,7 +11,6 @@ import Control.Monad (join, unless)
 import Data.Monoid
 import System.Environment (getArgs, getEnv)
 import Text.Printf (printf)
-import qualified Data.HashMap.Strict as M
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
 import qualified Data.List as List
@@ -59,8 +58,8 @@ commands =
         else return Nothing
 
     formatCurrentSong si =
-      let Just artist = M.lookup "Artist" (MPD.songTags si)
-          Just title  = M.lookup "Title"  (MPD.songTags si)
+      let Just artist = si `MPD.viewTag` "Artist"
+          Just title  = si `MPD.viewTag` "Title"
       in T.unwords [ artist, "-", title ]
 
     formatStatus st = T.intercalate "\t"
