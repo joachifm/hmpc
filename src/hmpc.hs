@@ -8,6 +8,7 @@ import MPD.CommandStr ((.+))
 
 import Control.Applicative
 import Control.Monad (join, unless)
+import Data.Maybe (listToMaybe)
 import Data.Monoid
 import System.Environment (getArgs, getEnv)
 import Text.Printf (printf)
@@ -36,7 +37,7 @@ commands =
   , ( "clear", \_ -> MPD.run MPD.clear )
   , ( "current", \_ -> currentSong >>= maybe (return ()) (T.putStrLn . formatCurrentSong) )
   , ( "help", \_ -> putStr . unlines $ map (\(n, _) -> n) commands )
-  , ( "ls", \xs -> MPD.run (MPD.listAll (if null xs then "" else T.pack (head xs))) >>= print )
+  , ( "ls", \xs -> MPD.run (MPD.listAll . maybe "" T.pack $ listToMaybe xs) >>= print )
   , ( "next", \_ -> MPD.run MPD.next )
   , ( "pause", \_ -> MPD.run (MPD.command "pause" (return ())) )
   , ( "play", \_ -> MPD.run (MPD.play Nothing) )
