@@ -33,10 +33,10 @@ main = do
 commands :: [(String, [String] -> IO ())]
 commands =
   [
-    ( "add", MPD.run . foldr1 (*>) . map MPD.add . map T.pack )
+    ( "add", MPD.run . foldr1 (*>) . map (MPD.add . T.pack ) )
   , ( "clear", \_ -> MPD.run MPD.clear )
   , ( "current", \_ -> currentSong >>= maybe (return ()) (T.putStrLn . formatCurrentSong) )
-  , ( "help", \_ -> putStr . unlines $ map (\(n, _) -> n) commands )
+  , ( "help", \_ -> putStr . unlines $ map fst commands )
   , ( "ls", \xs -> MPD.run (MPD.listAll . maybe "" T.pack $ listToMaybe xs) >>= print )
   , ( "next", \_ -> MPD.run MPD.next )
   , ( "pause", \_ -> MPD.run (MPD.command "pause" (return ())) )
@@ -47,9 +47,9 @@ commands =
   , ( "stop", \_ -> MPD.run MPD.stop )
   , ( "status", \_ -> do
       (st, cur) <- MPD.run ((,) <$> MPD.status <*> MPD.currentSong)
-      unless (MPD.statusPlaybackState st == "stop") $ do
-        T.putStrLn (formatCurrentSong cur)
-      T.putStrLn (formatStatus st) )
+      unless (MPD.statusPlaybackState st == "stop") $ T.putStrLn (formatCurrentSong cur)
+      T.putStrLn (formatStatus st)
+    )
   ]
   where
     currentSong = do
