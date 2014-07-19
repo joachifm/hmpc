@@ -5,15 +5,16 @@ module Main (main) where
 import qualified MPD
 import MPD.CommandStr ((.+))
 
-import Control.Applicative
+import Control.Applicative ((<$>), (*>))
 import Control.Monad (join, unless)
+
 import Data.Maybe (listToMaybe)
-import Data.Monoid
+import Data.Monoid ((<>))
+import qualified Data.Text    as T
+import qualified Data.Text.IO as T
+
 import System.Environment (getArgs, getEnv)
 import Text.Printf (printf)
-import qualified Data.Text as T
-import qualified Data.Text.IO as T
-import qualified Data.List as List
 
 ------------------------------------------------------------------------
 
