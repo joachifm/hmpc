@@ -34,6 +34,7 @@ commands =
   [
     ( "add", add )
   , ( "clear", clear )
+  , ( "consume", consume )
   , ( "current", current )
   , ( "help", help )
   , ( "ls", ls )
@@ -42,6 +43,7 @@ commands =
   , ( "play", play )
   , ( "prev", previous )
   , ( "random", random )
+  , ( "single", single )
   , ( "shuffle", shuffle )
   , ( "stop", stop )
   , ( "status", status )
@@ -52,6 +54,8 @@ commands =
 add = MPD.run . foldr1 (*>) . map (MPD.add . T.pack)
 
 clear _ = MPD.run MPD.clear
+
+consume _ = MPD.run (MPD.consume True)
 
 current _ = do
   st <- MPD.run MPD.status
@@ -72,6 +76,8 @@ play _ = MPD.run (MPD.play Nothing)
 previous _ = MPD.run MPD.previous
 
 random _ = MPD.run (MPD.random True)
+
+single _ = MPD.run (MPD.single True)
 
 shuffle _ = MPD.run (MPD.shuffle Nothing)
 
