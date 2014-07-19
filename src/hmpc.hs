@@ -46,9 +46,10 @@ commands =
   , ( "shuffle", \_ -> MPD.run (MPD.shuffle Nothing) )
   , ( "stop", \_ -> MPD.run MPD.stop )
   , ( "status", \_ -> do
-      (st, cur) <- MPD.run ((,) <$> MPD.status <*> MPD.currentSong)
-      unless (MPD.statusPlaybackState st == "stop") $ T.putStrLn (formatCurrentSong cur)
-      T.putStrLn (formatStatus st)
+         st <- MPD.run MPD.status
+         unless (MPD.statusPlaybackState st == "stop") $
+           T.putStrLn (formatCurrentSong cur)
+         T.putStrLn (formatStatus st)
     )
   ]
   where
