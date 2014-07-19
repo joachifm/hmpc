@@ -2,7 +2,6 @@
 
 module Main (main) where
 
-import qualified MPD.Core as MPD
 import qualified MPD
 import MPD.CommandStr ((.+))
 
