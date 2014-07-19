@@ -80,9 +80,8 @@ status _ = do
   unless (MPD.statusPlaybackState st == "stop") $ do
     cur <- MPD.run MPD.currentSong
     T.putStrLn (formatCurrentSong cur)
-  T.putStr $ T.unlines [ formatPlaybackStatus st
-                       , formatPlaybackOptions st
-                       ]
+    T.putStrLn (formatPlaybackStatus st)
+  T.putStrLn (formatPlaybackOptions st)
 
 stop _ = MPD.run MPD.stop
 
