@@ -34,7 +34,11 @@ commands =
   [
     ( "add", MPD.run . foldr1 (*>) . map (MPD.add . T.pack ) )
   , ( "clear", \_ -> MPD.run MPD.clear )
-  , ( "current", \_ -> currentSong >>= maybe (return ()) (T.putStrLn . formatCurrentSong) )
+  , ( "current", \_ -> do
+         st <- MPD.run MPD.status
+         unless (MPD.statusPlaybackState st == "stop") $
+           T.putStrLn . formatCurrentSong =<< MPD.run MPD.currentSong
+    )
   , ( "help", \_ -> putStr . unlines $ map fst commands )
   , ( "ls", \xs -> MPD.run (MPD.listAll . maybe "" T.pack $ listToMaybe xs) >>= print )
   , ( "next", \_ -> MPD.run MPD.next )
@@ -52,12 +56,6 @@ commands =
     )
   ]
   where
-    currentSong = do
-      st <- MPD.run MPD.status
-      if MPD.statusPlaybackState st /= "stop"
-        then Just `fmap` MPD.run MPD.currentSong
-        else return Nothing
-
     formatCurrentSong si =
       let Just artist = si `MPD.viewTag` "Artist"
           Just title  = si `MPD.viewTag` "Title"
