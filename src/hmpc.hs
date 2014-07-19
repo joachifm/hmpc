@@ -40,7 +40,7 @@ commands =
   , ( "next", next )
   , ( "pause", pause )
   , ( "play", play )
-  , ( "previous", previous )
+  , ( "prev", previous )
   , ( "random", random )
   , ( "shuffle", shuffle )
   , ( "stop", stop )
