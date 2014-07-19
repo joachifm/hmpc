@@ -43,10 +43,11 @@ commands =
   , ( "play", play )
   , ( "prev", previous )
   , ( "random", random )
-  , ( "single", single )
+  , ( "repeat", repeat' )
   , ( "shuffle", shuffle )
-  , ( "stop", stop )
+  , ( "single", single )
   , ( "status", status )
+  , ( "stop", stop )
   ]
 
 ------------------------------------------------------------------------
@@ -76,6 +77,8 @@ play _ = MPD.run (MPD.play Nothing)
 previous _ = MPD.run MPD.previous
 
 random _ = MPD.run (MPD.random True)
+
+repeat' _ = MPD.run (MPD.repeat True)
 
 single _ = MPD.run (MPD.single True)
 
