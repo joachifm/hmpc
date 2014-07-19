@@ -93,7 +93,7 @@ formatCurrentSong si =
   in T.unwords [ artist, "-", title ]
 
 formatPlaybackOptions st = T.intercalate "\t" [
-    "volume: "  <> MPD.statusVolume st
+    "volume: "  <> MPD.statusVolume st <> "%"
   , "repeat: "  <> MPD.statusRepeatEnabled st
   , "random: "  <> MPD.statusRandomEnabled st
   , "single: "  <> MPD.statusSingleEnabled st
