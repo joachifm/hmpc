@@ -80,7 +80,9 @@ status _ = do
   unless (MPD.statusPlaybackState st == "stop") $ do
     cur <- MPD.run MPD.currentSong
     T.putStrLn (formatCurrentSong cur)
-  T.putStrLn (formatStatus st)
+  T.putStr $ T.unlines [ formatPlaybackStatus st
+                       , formatPlaybackOptions st
+                       ]
 
 stop _ = MPD.run MPD.stop
 
@@ -91,10 +93,16 @@ formatCurrentSong si =
       Just title  = si `MPD.viewTag` "Title"
   in T.unwords [ artist, "-", title ]
 
-formatStatus st = T.intercalate "\t" [
+formatPlaybackOptions st = T.intercalate "\t" [
     "volume: "  <> MPD.statusVolume st
   , "repeat: "  <> MPD.statusRepeatEnabled st
   , "random: "  <> MPD.statusRandomEnabled st
   , "single: "  <> MPD.statusSingleEnabled st
   , "consume: " <> MPD.statusConsumeEnabled st
+  ]
+
+formatPlaybackStatus st = T.intercalate "\t" [
+    "[" <> MPD.statusPlaybackState st <> "]"
+  , "#" <> MPD.statusSongPos st
+  , MPD.statusTotalTime st <> " (%)"
   ]
