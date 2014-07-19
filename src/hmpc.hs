@@ -39,7 +39,7 @@ commands =
   , ( "help", \_ -> putStr . unlines $ map fst commands )
   , ( "ls", \xs -> MPD.run (MPD.listAll . maybe "" T.pack $ listToMaybe xs) >>= print )
   , ( "next", \_ -> MPD.run MPD.next )
-  , ( "pause", \_ -> MPD.run (MPD.command "pause" (return ())) )
+  , ( "pause", \_ -> MPD.run MPD.pause )
   , ( "play", \_ -> MPD.run (MPD.play Nothing) )
   , ( "previous", \_ -> MPD.run MPD.previous )
   , ( "random", \_ -> MPD.run (MPD.random True) )
