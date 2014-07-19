@@ -60,7 +60,7 @@ current _ = do
 
 help _ = putStr . unlines $ map fst commands
 
-ls xs = print =<<
+ls xs = (T.putStr . T.unlines . map (either id id)) =<<
   MPD.run (MPD.listAll . maybe "" T.pack $ listToMaybe xs)
 
 next _ = MPD.run MPD.next
