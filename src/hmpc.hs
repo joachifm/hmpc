@@ -3,7 +3,6 @@
 module Main (main) where
 
 import qualified MPD
-import MPD.CommandStr ((.+))
 
 import Control.Applicative ((<$>), (*>))
 import Control.Monad (join, unless)
