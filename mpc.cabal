@@ -16,3 +16,10 @@ executable hmpc
     , bytestring
     , mpd
     , text
+
+  ghc-options:
+    -Wall
+
+  ghc-prof-options:
+    -auto-all
+    -rtsopts
