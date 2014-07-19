@@ -50,7 +50,8 @@ commands =
   , ( "stop", \_ -> MPD.run MPD.stop )
   , ( "status", \_ -> do
          st <- MPD.run MPD.status
-         unless (MPD.statusPlaybackState st == "stop") $
+         unless (MPD.statusPlaybackState st == "stop") $ do
+           cur <- MPD.run MPD.currentSong
            T.putStrLn (formatCurrentSong cur)
          T.putStrLn (formatStatus st)
     )
