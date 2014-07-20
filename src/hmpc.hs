@@ -7,6 +7,7 @@ import qualified MPD
 import Control.Applicative ((<$>), (*>))
 import Control.Monad (join, unless)
 
+import Data.Either (rights)
 import Data.Maybe (listToMaybe)
 import Data.Monoid ((<>))
 import qualified Data.Text    as T
@@ -37,6 +38,7 @@ commands =
   , ( "consume", consume )
   , ( "current", current )
   , ( "help", help )
+  , ( "listall", listAll )
   , ( "ls", ls )
   , ( "next", next )
   , ( "pause", pause )
@@ -65,8 +67,11 @@ current _ = do
 
 help _ = putStr . unlines $ map fst commands
 
-ls xs = (T.putStr . T.unlines . map (either id id)) =<<
+listAll xs = T.putStr . T.unlines . rights =<<
   MPD.run (MPD.listAll . maybe "" T.pack $ listToMaybe xs)
+
+ls xs = T.putStr . T.unlines . map (either fst MPD.songFile) =<<
+  MPD.run (MPD.lsInfo $ fmap T.pack (listToMaybe xs))
 
 next _ = MPD.run MPD.next
 
