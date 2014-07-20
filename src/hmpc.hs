@@ -111,10 +111,11 @@ stop _ = MPD.run MPD.stop
 
 ------------------------------------------------------------------------
 
-formatCurrentSong si =
-  let Just artist = si `MPD.viewTag` "Artist"
-      Just title  = si `MPD.viewTag` "Title"
-  in T.unwords [ artist, "-", title ]
+formatCurrentSong si = T.unwords [
+    maybe "(none)" id (si `MPD.viewTag` "Artist")
+  , "-"
+  , maybe "(none)" id (si `MPD.viewTag` "Title")
+  ]
 
 formatPlaybackOptions st = T.intercalate "\t" [
     "volume: "  <> MPD.statusVolume st <> "%"
