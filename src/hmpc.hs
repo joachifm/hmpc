@@ -43,6 +43,7 @@ commands =
   , ( "next", next )
   , ( "pause", pause )
   , ( "play", play )
+  , ( "playlist", playlist )
   , ( "prev", previous )
   , ( "random", random )
   , ( "repeat", repeat' )
@@ -78,6 +79,9 @@ next _ = MPD.run MPD.next
 pause _ = MPD.run MPD.pause
 
 play _ = MPD.run (MPD.play Nothing)
+
+playlist _ = T.putStr . T.unlines . map formatCurrentSong =<<
+  MPD.run MPD.playlistInfo
 
 previous _ = MPD.run MPD.previous
 
