@@ -37,6 +37,7 @@ commands =
   , ( "clear", clear )
   , ( "consume", consume )
   , ( "current", current )
+  , ( "find", find )
   , ( "help", help )
   , ( "listall", listAll )
   , ( "ls", ls )
@@ -67,6 +68,11 @@ current _ = do
     T.putStrLn . formatCurrentSong =<< MPD.run MPD.currentSong
 
 help _ = putStr . unlines $ map fst commands
+
+find xs = T.putStr . T.unlines . map MPD.songFile =<<
+  case xs of
+    [typ, qry] -> MPD.run (MPD.find (T.pack typ) (T.pack qry))
+    _          -> return []
 
 listAll xs = T.putStr . T.unlines . rights =<<
   MPD.run (MPD.listAll . maybe "" T.pack $ listToMaybe xs)
