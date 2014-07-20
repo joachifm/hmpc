@@ -84,7 +84,7 @@ next _ = MPD.run MPD.next
 
 pause _ = MPD.run MPD.pause
 
-play _ = MPD.run (MPD.play Nothing)
+play xs = MPD.run (MPD.play . fmap read $ listToMaybe xs)
 
 playlist _ = T.putStr . T.unlines . map formatCurrentSong =<<
   MPD.run MPD.playlistInfo
