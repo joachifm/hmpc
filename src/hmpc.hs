@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Main (main) where
@@ -8,7 +9,7 @@ import Control.Applicative ((<$>), (*>))
 import Control.Monad (join, unless)
 
 import Data.Either (rights)
-import Data.Maybe (listToMaybe)
+import Data.Maybe (fromJust, listToMaybe, mapMaybe)
 import Data.Monoid ((<>))
 import qualified Data.Text    as T
 import qualified Data.Text.IO as T
@@ -74,11 +75,17 @@ find xs = T.putStr . T.unlines . map MPD.songFile =<<
     [typ, qry] -> MPD.run (MPD.find (T.pack typ) (T.pack qry))
     _          -> return []
 
-listAll xs = T.putStr . T.unlines . rights =<<
+listAll xs = T.putStr . T.unlines . fileNames =<<
   MPD.run (MPD.listAll . maybe "" T.pack $ listToMaybe xs)
+  where
+    fileNames = mapMaybe $ \case MPD.LsFile n -> Just n; _ -> Nothing
 
-ls xs = T.putStr . T.unlines . map (either fst MPD.songFile) =<<
-  MPD.run (MPD.lsInfo $ fmap T.pack (listToMaybe xs))
+ls xs = T.putStr . T.unlines . map fmt =<<
+  MPD.run (MPD.lsInfo . fmap T.pack $ listToMaybe xs)
+  where
+    fmt (MPD.LsSongInfo x)       = MPD.songFile x
+    fmt (MPD.LsDirInfo x _)      = x
+    fmt (MPD.LsPlaylistInfo x _) = x
 
 next _ = MPD.run MPD.next
 
@@ -127,6 +134,6 @@ formatPlaybackOptions st = T.intercalate "\t" [
 
 formatPlaybackStatus st = T.intercalate "\t" [
     "[" <> MPD.statusPlaybackState st <> "]"
-  , "#" <> MPD.statusSongPos st
-  , MPD.statusTotalTime st <> " (%)"
+  , "#" <> fromJust (MPD.statusSongPos st)
+  , fromJust (MPD.statusTime st) <> " (%)"
   ]
