@@ -7,12 +7,12 @@ import qualified MPD
 
 import Control.Applicative ((<$>), (*>))
 import Control.Monad (join, unless)
+import Control.Monad.Trans (MonadIO(..))
 
 import Data.Either (rights)
 import Data.Maybe (fromJust, listToMaybe, mapMaybe)
 import Data.Monoid ((<>))
-import qualified Data.Text    as T
-import qualified Data.Text.IO as T
+import Data.List (intercalate)
 
 import System.Environment (getArgs, getEnv)
 import Text.Printf (printf)
@@ -22,7 +22,8 @@ import Text.Printf (printf)
 main :: IO ()
 main = do
   (cmdName, cmdArgs) <- viewArgv <$> getArgs
-  maybe (unknownCommand cmdName) ($ cmdArgs) (lookup cmdName commands)
+  el <- maybe (unknownCommand cmdName) (MPD.runClientT . ($ cmdArgs)) (lookup cmdName commands)
+  print el
   where
     viewArgv []     = ("status", [])
     viewArgv (x:xs) = (x, xs)
@@ -31,7 +32,7 @@ main = do
 
 ------------------------------------------------------------------------
 
-commands :: [(String, [String] -> IO ())]
+commands :: [(String, [String] -> MPD.ClientT IO ())]
 commands =
   [
     ( "add", add )
@@ -57,7 +58,7 @@ commands =
 
 ------------------------------------------------------------------------
 
-add = MPD.run . foldr1 (*>) . map (MPD.add . T.pack)
+add = MPD.run . foldr1 (*>) . map (MPD.add . MPD.Path)
 
 clear _ = MPD.run MPD.clear
 
@@ -65,25 +66,25 @@ consume _ = MPD.run (MPD.consume True)
 
 current _ = do
   st <- MPD.run MPD.status
-  unless (MPD.statusPlaybackState st == "stop") $
-    T.putStrLn . formatCurrentSong =<< MPD.run MPD.currentSong
+  unless (MPD._statusPlaybackState st == "stop") $
+    liftIO . putStrLn . formatCurrentSong . fromJust =<< MPD.run MPD.currentSong
 
-help _ = putStr . unlines $ map fst commands
+help _ = liftIO . putStr . unlines $ map fst commands
 
-find xs = T.putStr . T.unlines . map MPD.songFile =<<
+find xs = liftIO . putStr . unlines . map (show . MPD._songFile) =<<
   case xs of
-    [typ, qry] -> MPD.run (MPD.find (T.pack typ) (T.pack qry))
+    [typ, qry] -> MPD.run (MPD.find (MPD.Plain typ) (MPD.Plain qry))
     _          -> return []
 
-listAll xs = T.putStr . T.unlines . fileNames =<<
-  MPD.run (MPD.listAll . maybe "" T.pack $ listToMaybe xs)
+listAll xs = liftIO . putStr . unlines . fileNames =<<
+  MPD.run (MPD.listAll . maybe "" MPD.Path $ listToMaybe xs)
   where
-    fileNames = mapMaybe $ \case MPD.LsFile n -> Just n; _ -> Nothing
+    fileNames = mapMaybe $ \case MPD.LsFile n -> Just (show n); _ -> Nothing
 
-ls xs = T.putStr . T.unlines . map fmt =<<
-  MPD.run (MPD.lsInfo . fmap T.pack $ listToMaybe xs)
+ls xs = liftIO . putStr . unlines . map (show . fmt) =<<
+  MPD.run (MPD.lsInfo (MPD.Path `fmap` listToMaybe xs))
   where
-    fmt (MPD.LsSongInfo x)       = MPD.songFile x
+    fmt (MPD.LsSongInfo x)       = MPD._songFile x
     fmt (MPD.LsDirInfo x _)      = x
     fmt (MPD.LsPlaylistInfo x _) = x
 
@@ -93,7 +94,7 @@ pause _ = MPD.run MPD.pause
 
 play xs = MPD.run (MPD.play . fmap read $ listToMaybe xs)
 
-playlist _ = T.putStr . T.unlines . map formatCurrentSong =<<
+playlist _ = liftIO . putStr . unlines . map formatCurrentSong =<<
   MPD.run MPD.playlistInfo
 
 previous _ = MPD.run MPD.previous
@@ -108,32 +109,32 @@ shuffle _ = MPD.run (MPD.shuffle Nothing)
 
 status _ = do
   st <- MPD.run MPD.status
-  unless (MPD.statusPlaybackState st == "stop") $ do
-    cur <- MPD.run MPD.currentSong
-    T.putStrLn (formatCurrentSong cur)
-    T.putStrLn (formatPlaybackStatus st)
-  T.putStrLn (formatPlaybackOptions st)
+  unless (MPD._statusPlaybackState st == "stop") $ do
+    Just cur <- MPD.run MPD.currentSong
+    liftIO $ putStrLn (formatCurrentSong cur)
+    liftIO $ putStrLn (formatPlaybackStatus st)
+  liftIO $ putStrLn (formatPlaybackOptions st)
 
 stop _ = MPD.run MPD.stop
 
 ------------------------------------------------------------------------
 
-formatCurrentSong si = T.unwords [
-    maybe "(none)" id (si `MPD.viewTag` "Artist")
+formatCurrentSong si = unwords [
+    maybe "(none)" show (si `MPD.viewTag` "Artist")
   , "-"
-  , maybe "(none)" id (si `MPD.viewTag` "Title")
+  , maybe "(none)" show (si `MPD.viewTag` "Title")
   ]
 
-formatPlaybackOptions st = T.intercalate "\t" [
-    "volume: "  <> MPD.statusVolume st <> "%"
-  , "repeat: "  <> MPD.statusRepeatEnabled st
-  , "random: "  <> MPD.statusRandomEnabled st
-  , "single: "  <> MPD.statusSingleEnabled st
-  , "consume: " <> MPD.statusConsumeEnabled st
+formatPlaybackOptions st = intercalate "\t" [
+    "volume: "  <> show (MPD._statusVolume st) <> "%"
+  , "repeat: "  <> show (MPD._statusRepeatEnabled st)
+  , "random: "  <> show (MPD._statusRandomEnabled st)
+  , "single: "  <> show (MPD._statusSingleEnabled st)
+  , "consume: " <> show (MPD._statusConsumeEnabled st)
   ]
 
-formatPlaybackStatus st = T.intercalate "\t" [
-    "[" <> MPD.statusPlaybackState st <> "]"
-  , "#" <> fromJust (MPD.statusSongPos st)
-  , fromJust (MPD.statusTime st) <> " (%)"
+formatPlaybackStatus st = intercalate "\t" [
+    "[" <> MPD._statusPlaybackState st <> "]"
+  , "#" <> show (fromJust (MPD._statusSongPos st))
+  , show (fromJust (MPD._statusTime st)) <> " (%)"
   ]

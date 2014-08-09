@@ -15,6 +15,7 @@ executable hmpc
       base
     , bytestring
     , mpd
+    , mtl
     , text
 
   ghc-options:
