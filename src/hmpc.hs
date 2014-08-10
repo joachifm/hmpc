@@ -23,7 +23,9 @@ main :: IO ()
 main = do
   (cmdName, cmdArgs) <- viewArgv <$> getArgs
   el <- maybe (unknownCommand cmdName) (MPD.runClientT . ($ cmdArgs)) (lookup cmdName commands)
-  print el
+  case el of
+   Right _ -> return ()
+   Left e  -> fail (show e)
   where
     viewArgv []     = ("status", [])
     viewArgv (x:xs) = (x, xs)
