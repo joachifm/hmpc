@@ -52,10 +52,12 @@ commands =
   , ( "prev", previous )
   , ( "random", random )
   , ( "repeat", repeat' )
+  , ( "rescan", rescan )
   , ( "shuffle", shuffle )
   , ( "single", single )
   , ( "status", status )
   , ( "stop", stop )
+  , ( "update", update )
   ]
 
 ------------------------------------------------------------------------
@@ -105,6 +107,8 @@ random _ = MPD.run (MPD.random True)
 
 repeat' _ = MPD.run (MPD.repeat True)
 
+rescan = MPD.run . MPD.rescan . (Path `fmap` listToMaybe)
+
 single _ = MPD.run (MPD.single True)
 
 shuffle _ = MPD.run (MPD.shuffle Nothing)
@@ -118,6 +122,8 @@ status _ = do
   liftIO $ putStrLn (formatPlaybackOptions st)
 
 stop _ = MPD.run MPD.stop
+
+update = MPD.run . MPD.update . (Path `fmap` listToMaybe)
 
 ------------------------------------------------------------------------
 
