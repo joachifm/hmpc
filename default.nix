@@ -8,7 +8,7 @@ let
     src = ./../nanompd/code;
     propagatedBuildDepends = [ cabalInstall ];
     buildDepends = [
-      cabalInstall errors exceptions mtl network
+      cabalInstall attoparsec errors exceptions mtl network text
     ];
     testDepends = buildDepends;
     doCheck = false;

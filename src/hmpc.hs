@@ -73,7 +73,7 @@ commands =
 
 ------------------------------------------------------------------------
 
-add = MPD.run . foldr1 (*>) . map (MPD.add . MPD.Path)
+add = MPD.run . foldr1 (*>) . map (MPD.add . fromString)
 
 clear = \_ -> MPD.run MPD.clear
 
@@ -81,7 +81,7 @@ consume = \_ -> MPD.run (MPD.consume True)
 
 current = \_ -> do
   st <- MPD.run MPD.status
-  unless (MPD.unText (MPD.statusPlaybackState st) == "stop") $
+  unless (MPD.statusPlaybackState st == "stop") $
     liftIO . putStrLn . formatCurrentSong . fromJust =<< MPD.run MPD.currentSong
 
 help = \_ -> liftIO . putStr . unlines $ map fst commands
@@ -130,7 +130,7 @@ shuffle = \_ -> MPD.run (MPD.shuffle Nothing)
 
 status = \_ -> do
   st <- MPD.run MPD.status
-  unless (MPD.unText (MPD.statusPlaybackState st) == "stop") $ do
+  unless (MPD.statusPlaybackState st == "stop") $ do
     Just cur <- MPD.run MPD.currentSong
     liftIO $ putStrLn (formatCurrentSong cur)
     liftIO $ putStrLn (formatPlaybackStatus st)
@@ -160,7 +160,7 @@ formatPlaybackOptions st = intercalate "\t" [
   ]
 
 formatPlaybackStatus st = intercalate "\t" [
-    "[" <> MPD.unText (MPD.statusPlaybackState st) <> "]"
+    "[" <> show (MPD.statusPlaybackState st) <> "]"
   , "#" <> show (fromJust (MPD.statusSongPos st))
   , show (fromJust (MPD.statusTime st)) <> " (%)"
   ]
