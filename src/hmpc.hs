@@ -88,7 +88,7 @@ help = \_ -> liftIO . putStr . unlines $ map fst commands
 
 find = \xs -> liftIO . putStr . unlines . map (show . MPD.songFile) =<<
   case xs of
-    [typ, qry] -> MPD.run (MPD.find (fromString typ) (fromString qry))
+    [typ, qry] -> MPD.run (MPD.find (read typ MPD.=? fromString qry))
     _ -> return []
 
 listAll = \xs ->
