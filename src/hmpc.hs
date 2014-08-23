@@ -75,60 +75,57 @@ commands =
 
 add = MPD.run . foldr1 (*>) . map (MPD.add . fromString)
 
-clear = \_ -> MPD.run MPD.clear
+clear _ = MPD.run MPD.clear
 
-consume = \_ -> MPD.run (MPD.consume True)
+consume _ = MPD.run (MPD.consume True)
 
-current = \_ -> do
+current _ = do
   st <- MPD.run MPD.status
   unless (MPD.statusPlaybackState st == "stop") $
     liftIO . putStrLn . formatCurrentSong . fromJust =<< MPD.run MPD.currentSong
 
-help = \_ -> liftIO . putStr . unlines $ map fst commands
+help _ = liftIO . putStr . unlines $ map fst commands
 
-find = \xs -> liftIO . putStr . unlines . map (show . MPD.songFile) =<<
-  case xs of
-    [typ, qry] -> MPD.run (MPD.find (read typ MPD.=? fromString qry))
-    _ -> return []
+find [typ, qry] = liftIO . putStr . unlines . map (show . MPD.songFile) =<<
+  MPD.run (MPD.find (read typ MPD.=? fromString qry))
+find _ = return ()
 
-listAll = \xs ->
-  liftIO . putStr . unlines . fileNames =<<
+listAll xs = liftIO . putStr . unlines . fileNames =<<
   MPD.run (MPD.listAll . maybe "" fromString $ listToMaybe xs)
   where
     fileNames = mapMaybe $ \case MPD.LsFile n -> Just (show n); _ -> Nothing
 
-ls = \xs ->
-  liftIO . putStr . unlines . map (show . fmt) =<<
+ls xs = liftIO . putStr . unlines . map (show . fmt) =<<
   MPD.run (MPD.lsInfo . fmap fromString $ listToMaybe xs)
   where
     fmt (MPD.LsSongInfo x)       = MPD.songFile x
     fmt (MPD.LsDirInfo x _)      = x
     fmt (MPD.LsPlaylistInfo x _) = x
 
-next = \_ -> MPD.run MPD.next
+next _ = MPD.run MPD.next
 
-pause = \_ -> MPD.run MPD.pause
+pause _ = MPD.run MPD.pause
 
-play = \xs -> MPD.run (MPD.play . fmap read $ listToMaybe xs)
+play xs = MPD.run (MPD.play . fmap read $ listToMaybe xs)
 
-playlist = \_ -> liftIO . putStr . unlines . map formatCurrentSong =<<
+playlist _ = liftIO . putStr . unlines . map formatCurrentSong =<<
   MPD.run MPD.playlistInfo
 
-previous = \_ -> MPD.run MPD.previous
+previous _ = MPD.run MPD.previous
 
-random = \_ -> MPD.run (MPD.random True)
+random _ = MPD.run (MPD.random True)
 
-repeat' = \_ -> MPD.run (MPD.repeat True)
+repeat' _ = MPD.run (MPD.repeat True)
 
-rescan = \xs -> do
+rescan xs = do
   r <- MPD.run (MPD.rescan . fmap fromString $ listToMaybe xs)
   liftIO $ print r
 
-single = \_ -> MPD.run (MPD.single True)
+single _ = MPD.run (MPD.single True)
 
-shuffle = \_ -> MPD.run (MPD.shuffle Nothing)
+shuffle _ = MPD.run (MPD.shuffle Nothing)
 
-status = \_ -> do
+status _ = do
   st <- MPD.run MPD.status
   unless (MPD.statusPlaybackState st == "stop") $ do
     Just cur <- MPD.run MPD.currentSong
@@ -136,10 +133,10 @@ status = \_ -> do
     liftIO $ putStrLn (formatPlaybackStatus st)
   liftIO $ putStrLn (formatPlaybackOptions st)
 
-stop = \_ -> MPD.run MPD.stop
+stop _ = MPD.run MPD.stop
 
 update :: [String] -> Client ()
-update = \xs -> do
+update xs = do
   r <- MPD.run (MPD.update . fmap fromString $ listToMaybe xs)
   liftIO $ print r
 
