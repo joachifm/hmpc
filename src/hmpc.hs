@@ -67,6 +67,7 @@ commands =
   , ( "shuffle", shuffle )
   , ( "single", single )
   , ( "status", status )
+  , ( "stats", stats )
   , ( "stop", stop )
   , ( "update", update )
   ]
@@ -132,6 +133,10 @@ status _ = do
     liftIO $ putStrLn (formatCurrentSong cur)
     liftIO $ putStrLn (formatPlaybackStatus st)
   liftIO $ putStrLn (formatPlaybackOptions st)
+
+stats _ = do
+  st <- MPD.run MPD.stats
+  liftIO $ print st
 
 stop _ = MPD.run MPD.stop
 
