@@ -22,5 +22,5 @@ executable hmpc
     -Wall
 
   ghc-prof-options:
-    -auto-all
+    -fprof-auto
     -rtsopts
