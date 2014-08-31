@@ -7,18 +7,16 @@ module Main (main) where
 import qualified MPD
 
 import Control.Applicative ((<$>), (*>))
-import Control.Monad (join, unless)
+import Control.Monad (unless)
 import Control.Monad.Trans (MonadIO(..))
 import Control.Monad.Trans.Either (EitherT(..))
 
-import Data.Either (rights)
 import Data.Maybe (fromJust, listToMaybe, mapMaybe)
 import Data.Monoid ((<>))
 import Data.List (intercalate)
 import Data.String (fromString)
 
-import System.Environment (getArgs, getEnv)
-import Text.Printf (printf)
+import System.Environment (getArgs)
 
 ------------------------------------------------------------------------
 
