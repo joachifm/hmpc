@@ -8,6 +8,7 @@ import qualified MPD
 import Control.Applicative ((<$>), (*>))
 import Control.Monad (join, unless)
 import Control.Monad.Trans (MonadIO(..))
+import Control.Monad.Trans.Either (EitherT(..))
 
 import Data.Either (rights)
 import Data.Maybe (fromJust, listToMaybe, mapMaybe)
@@ -34,11 +35,11 @@ main = do
 
 ------------------------------------------------------------------------
 
-type Client a = MPD.EitherT MPD.ClientError IO a
+type Client a = EitherT MPD.ClientError IO a
 
 run :: Client a -> IO a
 run m = do
-  r <- MPD.runEitherT m
+  r <- runEitherT m
   case r of
    Left e  -> fail (show e)
    Right x -> return x
