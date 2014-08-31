@@ -64,6 +64,7 @@ commands =
   , ( "random", random )
   , ( "repeat", repeat' )
   , ( "rescan", rescan )
+  , ( "seek", seek )
   , ( "shuffle", shuffle )
   , ( "single", single )
   , ( "status", status )
@@ -121,6 +122,9 @@ repeat' _ = MPD.run (MPD.repeat True)
 rescan xs = do
   r <- MPD.run (MPD.rescan . fmap fromString $ listToMaybe xs)
   liftIO $ print r
+
+seek xs = case xs of [x] -> MPD.run (MPD.seek $ read x)
+                     _   -> error "seek <num>"
 
 single _ = MPD.run (MPD.single True)
 
