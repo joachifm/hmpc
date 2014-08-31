@@ -123,8 +123,9 @@ rescan xs = do
   r <- MPD.run (MPD.rescan . fmap fromString $ listToMaybe xs)
   liftIO $ print r
 
-seek xs = case xs of [x] -> MPD.run (MPD.seek $ read x)
-                     _   -> error "seek <num>"
+seek xs = case xs of
+  [pos, dest] -> MPD.run (MPD.seek (read pos) (read dest))
+  _ -> error "seek <pos> <num>"
 
 single _ = MPD.run (MPD.single True)
 
