@@ -124,8 +124,8 @@ rescan xs = do
   liftIO $ print r
 
 seek xs = case xs of
-  [pos, dest] -> MPD.run (MPD.seek (read pos) (read dest))
-  _ -> error "seek <pos> <num>"
+  [dest] -> MPD.run (MPD.seekCur (read dest))
+  _ -> error "seek <dest>"
 
 single _ = MPD.run (MPD.single True)
 
