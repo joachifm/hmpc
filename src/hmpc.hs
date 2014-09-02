@@ -71,6 +71,7 @@ commands =
   , ( "stats", stats )
   , ( "stop", stop )
   , ( "update", update )
+  , ( "volume", volume )
   ]
 
 ------------------------------------------------------------------------
@@ -149,6 +150,9 @@ update :: [String] -> Client ()
 update xs = do
   r <- MPD.run (MPD.update . fmap fromString $ listToMaybe xs)
   liftIO $ print r
+
+volume xs = case xs of [x] -> MPD.run (MPD.setVolume (read x))
+                       _   -> error "volume <num>"
 
 ------------------------------------------------------------------------
 
