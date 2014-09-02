@@ -5,12 +5,12 @@ let
   nanompd = cabal.mkDerivation (self: rec {
     pname = "nanompd";
     version = "0.0.0.0";
-    src = ./../nanompd/code;
+    src = ./../nanompd;
     propagatedBuildDepends = [ cabalInstall ];
     buildDepends = [
-      cabalInstall attoparsec errors exceptions mtl network text
+      cabalInstall attoparsec either exceptions mtl network text
+      unorderedContainers
     ];
-    testDepends = buildDepends;
     doCheck = false;
   });
 
@@ -22,6 +22,4 @@ cabal.mkDerivation (self: rec {
   src = ./.;
   propagatedBuildDepends = [ cabalInstall ];
   buildDepends = [ cabalInstall nanompd ];
-  testDepends = buildDepends;
-  doCheck = false;
 })
