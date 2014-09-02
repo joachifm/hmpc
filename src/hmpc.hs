@@ -83,7 +83,7 @@ consume _ = MPD.run (MPD.consume True)
 
 current _ = do
   st <- MPD.run MPD.status
-  unless (MPD.statusPlaybackState st == "stop") $
+  unless (MPD.statusPlaybackState st == MPD.PlaybackStopped) $
     liftIO . putStrLn . formatCurrentSong . fromJust =<< MPD.run MPD.currentSong
 
 help _ = liftIO . putStr . unlines $ map fst commands
@@ -133,7 +133,7 @@ shuffle _ = MPD.run (MPD.shuffle Nothing)
 
 status _ = do
   st <- MPD.run MPD.status
-  unless (MPD.statusPlaybackState st == "stop") $ do
+  unless (MPD.statusPlaybackState st == MPD.PlaybackStopped) $ do
     Just cur <- MPD.run MPD.currentSong
     liftIO $ putStrLn (formatCurrentSong cur)
     liftIO $ putStrLn (formatPlaybackStatus st)
