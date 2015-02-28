@@ -7,14 +7,19 @@ module Main (main) where
 import qualified MPD
 
 import Control.Applicative ((<$>), (*>))
-import Control.Monad (unless)
-import Control.Monad.Trans (MonadIO(..))
-import Control.Monad.Trans.Either (EitherT(..))
+import Control.Monad ((<=<), unless)
+import Control.Monad.Trans (MonadIO(..), lift)
+import Control.Monad.Trans.Except
+
+import Control.Monad.Reader (ReaderT(..), ask)
 
 import Data.Maybe (fromJust, listToMaybe, mapMaybe)
 import Data.Monoid ((<>))
 import Data.List (intercalate)
 import Data.String (fromString)
+
+import Network (HostName, PortID(..))
+import System.IO (Handle)
 
 import System.Environment (getArgs)
 
@@ -24,7 +29,7 @@ main :: IO ()
 main = do
   (cmdName, cmdArgs) <- viewArgv <$> getArgs
   maybe (unknownCommand cmdName)
-        (run . ($ cmdArgs))
+        (runClient . ($ cmdArgs))
         (lookup cmdName commands)
   where
     viewArgv []     = ("status", [])
@@ -34,16 +39,17 @@ main = do
 
 ------------------------------------------------------------------------
 
-type Client a = EitherT MPD.ClientError IO a
+type Client a = ReaderT Handle (ExceptT MPD.ClientError IO) a
 
-run :: Client a -> IO a
-run m = do
-  r <- runEitherT m
-  case r of
-   Left e  -> fail (show e)
-   Right x -> return x
+runMPD :: MPD.Command a -> Client a
+runMPD c = ask >>= \hdl -> lift (MPD.run hdl c)
 
-------------------------------------------------------------------------  
+runClient :: Client a -> IO a
+runClient c = MPD.withConn "localhost" (PortNumber 6600) $ \hdl ->do
+  r <- runExceptT (runReaderT c hdl)
+  either (fail . show) return r
+
+------------------------------------------------------------------------
 
 commands :: [(String, [String] -> Client ())]
 commands =
@@ -76,82 +82,82 @@ commands =
 
 ------------------------------------------------------------------------
 
-add = MPD.run . foldr1 (*>) . map (MPD.add . fromString)
+add = runMPD . foldr1 (*>) . map (MPD.add . fromString)
 
-clear _ = MPD.run MPD.clear
+clear _ = runMPD MPD.clear
 
-consume _ = MPD.run (MPD.consume True)
+consume _ = runMPD (MPD.consume True)
 
 current _ = do
-  st <- MPD.run MPD.status
+  st <- runMPD MPD.status
   unless (MPD.statusPlaybackState st == MPD.PlaybackStopped) $
-    liftIO . putStrLn . formatCurrentSong . fromJust =<< MPD.run MPD.currentSong
+    liftIO . putStrLn . formatCurrentSong . fromJust =<< runMPD MPD.currentSong
 
 help _ = liftIO . putStr . unlines $ map fst commands
 
 find [typ, qry] = liftIO . putStr . unlines . map (show . MPD.songFile) =<<
-  MPD.run (MPD.find (read typ MPD.=? fromString qry))
+  runMPD (MPD.find (read typ MPD.=? fromString qry))
 find _ = return ()
 
 listAll xs = liftIO . putStr . unlines . fileNames =<<
-  MPD.run (MPD.listAll . maybe "" fromString $ listToMaybe xs)
+  runMPD (MPD.listAll . maybe "" fromString $ listToMaybe xs)
   where
     fileNames = mapMaybe $ \case MPD.LsFile n -> Just (show n); _ -> Nothing
 
 ls xs = liftIO . putStr . unlines . map (show . fmt) =<<
-  MPD.run (MPD.lsInfo . fmap fromString $ listToMaybe xs)
+  runMPD (MPD.lsInfo . fmap fromString $ listToMaybe xs)
   where
-    fmt (MPD.LsSongInfo x)       = MPD.songFile x
-    fmt (MPD.LsDirInfo x _)      = x
-    fmt (MPD.LsPlaylistInfo x _) = x
+    fmt (MPD.LsSongInfo x)    = MPD.songFile x
+    fmt (MPD.LsDirInfo x _)   = x
+    fmt (MPD.LsPListInfo x _) = x
 
-next _ = MPD.run MPD.next
+next _ = runMPD MPD.next
 
-pause _ = MPD.run MPD.pause
+pause _ = runMPD MPD.pause
 
-play xs = MPD.run (MPD.play . fmap read $ listToMaybe xs)
+play xs = runMPD (MPD.play . fmap read $ listToMaybe xs)
 
 playlist _ = liftIO . putStr . unlines . map formatCurrentSong =<<
-  MPD.run MPD.playlistInfo
+  runMPD MPD.playlistInfo
 
-previous _ = MPD.run MPD.previous
+previous _ = runMPD MPD.previous
 
-random _ = MPD.run (MPD.random True)
+random _ = runMPD (MPD.random True)
 
-repeat' _ = MPD.run (MPD.repeat True)
+repeat' _ = runMPD (MPD.repeat True)
 
 rescan xs = do
-  r <- MPD.run (MPD.rescan . fmap fromString $ listToMaybe xs)
+  r <- runMPD (MPD.rescan . fmap fromString $ listToMaybe xs)
   liftIO $ print r
 
 seek xs = case xs of
-  [dest] -> MPD.run (MPD.seekCur (read dest))
+  [dest] -> runMPD (MPD.seekCur (read dest))
   _ -> error "seek <dest>"
 
-single _ = MPD.run (MPD.single True)
+single _ = runMPD (MPD.single True)
 
-shuffle _ = MPD.run (MPD.shuffle Nothing)
+shuffle _ = runMPD (MPD.shuffle Nothing)
 
 status _ = do
-  st <- MPD.run MPD.status
+  st <- runMPD MPD.status
   unless (MPD.statusPlaybackState st == MPD.PlaybackStopped) $ do
-    Just cur <- MPD.run MPD.currentSong
+    Just cur <- runMPD MPD.currentSong
     liftIO $ putStrLn (formatCurrentSong cur)
     liftIO $ putStrLn (formatPlaybackStatus st)
   liftIO $ putStrLn (formatPlaybackOptions st)
 
 stats _ = do
-  st <- MPD.run MPD.stats
+  st <- runMPD MPD.stats
   liftIO $ print st
 
-stop _ = MPD.run MPD.stop
+stop _ = runMPD MPD.stop
 
 update :: [String] -> Client ()
 update xs = do
-  r <- MPD.run (MPD.update . fmap fromString $ listToMaybe xs)
+  r <- runMPD (MPD.update . fmap fromString $ listToMaybe xs)
   liftIO $ print r
 
-volume xs = case xs of [x] -> MPD.run (MPD.setVolume (read x))
+volume xs = case xs of [x] -> runMPD (MPD.setVolume (read x))
                        _   -> error "volume <num>"
 
 ------------------------------------------------------------------------

@@ -14,9 +14,10 @@ executable hmpc
   build-depends:
       base
     , bytestring
-    , either
     , mpd
     , mtl
+    , network
+    , transformers >= 0.4
     , text
 
   ghc-options:
