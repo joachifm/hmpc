@@ -152,7 +152,6 @@ stats _ = do
 
 stop _ = runMPD MPD.stop
 
-update :: [String] -> Client ()
 update xs = do
   r <- runMPD (MPD.update . fmap fromString $ listToMaybe xs)
   liftIO $ print r
