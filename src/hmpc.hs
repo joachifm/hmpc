@@ -7,7 +7,7 @@ module Main (main) where
 import qualified MPD
 
 import Control.Applicative ((<$>), (*>))
-import Control.Monad ((<=<), unless)
+import Control.Monad (unless)
 import Control.Monad.Trans (MonadIO(..), lift)
 import Control.Monad.Trans.Except
 
@@ -18,7 +18,7 @@ import Data.Monoid ((<>))
 import Data.List (intercalate)
 import Data.String (fromString)
 
-import Network (HostName, PortID(..))
+import Network (PortID(..))
 import System.IO (Handle)
 
 import System.Environment (getArgs)
