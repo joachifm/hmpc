@@ -13,10 +13,11 @@ import Control.Monad.Trans.Except
 
 import Control.Monad.Reader (ReaderT(..), ask)
 
-import Data.Maybe (fromJust, listToMaybe, mapMaybe)
+import Data.Maybe (fromJust, listToMaybe)
 import Data.Monoid ((<>))
 import Data.List (intercalate)
 import Data.String (fromString)
+import qualified Data.Text.IO as T
 
 import Network (PortID(..))
 import System.IO (Handle)
@@ -99,10 +100,9 @@ find [typ, qry] = liftIO . putStr . unlines . map (show . MPD.songFile) =<<
   runMPD (MPD.find (read typ MPD.=? fromString qry))
 find _ = return ()
 
-listAll xs = liftIO . putStr . unlines . fileNames =<<
-  runMPD (MPD.listAll . maybe "" fromString $ listToMaybe xs)
-  where
-    fileNames = mapMaybe $ \case MPD.LsFile n -> Just (show n); _ -> Nothing
+listAll xs = liftIO . mapM_ f =<< runMPD (MPD.listAll . maybe "" fromString $ listToMaybe xs)
+  where f (MPD.LsFile n) = T.putStrLn (MPD.unPath n)
+        f _              = return ()
 
 ls xs = liftIO . putStr . unlines . map (show . fmt) =<<
   runMPD (MPD.lsInfo . fmap fromString $ listToMaybe xs)
